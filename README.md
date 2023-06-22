@@ -2,6 +2,9 @@
 
 ## Segundo Parcial SPD
 
+![Imágen del proyecto](/img/SistemaDeIncendios.jpg)
+
+
 ### Descripción
 El proyecto consiste en un sistema de deteccion de incendio hecho con una Arduino.
 Detecta cambios de temperatura y, mediante los mismos, es capaz de detectar la estación del año,
