@@ -1,0 +1,186 @@
+//Agrego la libreria del servomotor
+#include <Servo.h>
+//Agrego la libreria del control remoto
+#include <IRremote.h>
+//Agrego la libreria del LCD
+#include <LiquidCrystal.h>
+
+
+#define CONTROL_POWER 0xFF00BF00
+#define CONTROL_SISTEMA 0xFD02BF00
+#define CONTROL_ESTACIONES 0xF30CBF00
+#define LED_VERDE 7
+#define LED_ROJO 6
+#define IR 11
+
+LiquidCrystal lcd_1(12, 13, 5, 4, 3, 2);
+
+int estado_power = 0; // Detecta si todo el sistema 
+					  // esta encendido
+
+int estado_sistema_alarma = 0; // Detecta si el sistema 
+                        	   // de deteccion de incendios 
+                               // esta encendido
+
+int estado_deteccion_estaciones = 0; // Detecta si quiero 
+									 // establecer la estacion
+
+Servo servo_motor;
+
+void MostrarEstacion(float temperatura);
+void EstablecerEstadoAlarma(float temperatura, int led, int led_alarma);
+void MoverServoMotor(int grados_max);
+void EncenderYApagarLed(int tiempo,int pinLed);
+void RecibirSenialesIR();
+
+void setup()
+{
+  Serial.begin(9600);
+  pinMode(LED_ROJO, OUTPUT);
+  pinMode(LED_VERDE, OUTPUT);
+  lcd_1.begin(16, 2); //Inicializo el LCD.
+  IrReceiver.begin(IR, DISABLE_LED_FEEDBACK);
+  servo_motor.attach(9);
+  servo_motor.write(0);
+}
+
+void loop()
+{
+  
+  if (IrReceiver.decode()) {
+    RecibirSenialesIR();
+    IrReceiver.resume();
+  }
+    
+  if (estado_power == 1)
+  {
+    lcd_1.display();
+    // Leo la temperatura
+    int lectura = analogRead(A0);
+    float temperatura = map(lectura,20,358,-40,125);
+
+	if (estado_deteccion_estaciones == 1)
+    {
+      lcd_1.setCursor(0,0); // Posiciono el cursor
+      MostrarEstacion(temperatura);
+      estado_deteccion_estaciones = 0;
+    }
+    
+    lcd_1.setCursor(0,1); // Posiciono el cursor
+    lcd_1.print(temperatura);
+    lcd_1.print(" grados.       ");
+    
+    if(estado_sistema_alarma == 1)
+    {
+      lcd_1.setCursor(0,0);
+      EstablecerEstadoAlarma(temperatura, LED_VERDE, LED_ROJO);
+      delay(100);
+    }
+  }
+  
+  else
+  {
+    lcd_1.noDisplay();
+  }
+  delay(100);
+}
+
+
+
+ void MostrarEstacion(float temperatura)
+{
+  if (temperatura <= 5)
+  {
+    lcd_1.print("Invierno        ");
+  }
+  else
+  {
+    if (temperatura > 5 & temperatura <= 15)
+    {
+      lcd_1.print("Otonio          ");
+    }
+    else
+    {
+      if (temperatura > 15 & temperatura <= 25)
+      {
+        lcd_1.print("Primavera       ");
+      }
+      else
+      {
+        if (temperatura > 25 & temperatura <= 60)
+        {
+          lcd_1.print("Verano          ");
+        }
+      }
+    }
+    
+  }
+}
+
+void EstablecerEstadoAlarma(float temperatura, int led, int led_alarma)
+{
+  if (temperatura > 60)
+  {
+    lcd_1.print("ALERTA INCENDIO!");
+    digitalWrite(led_alarma, HIGH);
+    MoverServoMotor(180);
+   }
+  else
+  {
+    digitalWrite(led_alarma, LOW);
+    EncenderYApagarLed(500, led);
+  }
+
+}
+
+void MoverServoMotor(int grados_max)
+{
+  int pos = 0;
+  for (pos = 0; pos <= grados_max; pos += 2) {
+    servo_motor.write(pos);
+    delay(15); 
+  }
+  for (pos = grados_max; pos >= 0; pos -= 2) 
+  {
+    servo_motor.write(pos);
+    delay(15);
+  }
+}
+
+void EncenderYApagarLed(int tiempo,int pinLed)
+{
+  digitalWrite(pinLed, HIGH);
+  delay(tiempo); 
+  digitalWrite(pinLed, LOW);
+  delay(tiempo); 
+}
+
+void RecibirSenialesIR()
+{
+  if (IrReceiver.decodedIRData.decodedRawData == CONTROL_POWER)
+  {
+    if (estado_power == 0)
+    {
+      estado_power = 1;
+    }
+    else
+    {
+      estado_power = 0;
+    }
+  }
+  if (IrReceiver.decodedIRData.decodedRawData == CONTROL_SISTEMA)
+  {
+    if (estado_sistema_alarma == 0)
+    {
+      estado_sistema_alarma = 1;
+    }
+    else
+    {
+      estado_sistema_alarma = 0;
+    }
+  }
+  if (IrReceiver.decodedIRData.decodedRawData == CONTROL_ESTACIONES)
+  {
+    estado_deteccion_estaciones = 1; 
+  }
+}
