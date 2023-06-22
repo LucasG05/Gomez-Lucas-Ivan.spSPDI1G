@@ -11,6 +11,37 @@ Detecta cambios de temperatura y, mediante los mismos, es capaz de detectar la e
 mostrando todos los datos en un Display LCD. Además, en caso de detectar un incendio activa un
 servo motor, simulando una respuesta del sistema.
 
+![Esquema de componentes](/img/EsquemaComponentes.jpg)
+
+![Lista de componentes](/img/ListaComponentes.jpg)
+## Funcionamiento de los componentes
+- LCD 16x2: El display LCD se enciende al presionar el boton Power del control remoto.
+Su funcion es mostrar la temperatura y la estación del año. Además en caso de llegar a cierta
+temperatura, mostrará un mensaje de alerta informando que hay un incendio.
+
+- Microservomotor: Se activará en caso de que se detecte un incendio. Al activarse comienza 
+a girar 180°, simulando una respuesta del sistema ante el incendio.
+
+- Led verde: Led que titila cada 5 segundos en caso de que todo esté bien y no
+haya ningún incendio.
+
+- Led rojo: Led que se encenderá solo en caso de superar cierta temperatura, para alertarnos de que
+se está produciendo un incendio.
+
+- Sensor IR: Sensor conectada a la Arduino que recibe las señales en infrarrojo enviadas por
+control remoto.
+
+- Control remoto IR: Control que sirve para encender ciertas funcionalidades del sistema
+según nuestro interés.
+
+- Sensor de temperatura: Sensor que se encarga de medir la temperatura del ambiente.
+
+- Protoboard: Permite conectar todos los componentes entre sí de forma sencilla.
+
+- Resistencias: Controlan el flujo de la corriente para que pasen 220 Ohms a ciertas partes
+del circuito.
+
+
 ### Funcion para mostrar estaciones
 Esta funcion recibe la temperatura previamente detectada por un sensor y según la misma
 indica en el LCD la estación del año en la que se encuentra. Si la temperatura es menor
@@ -69,8 +100,8 @@ void MoverServoMotor(int grados_max)
 
 ### Funcion para establecer el estado de alarma
 Esta funcion recibe la temperatura y los pines a los qu están conectados un led rojo y
-uno verde. En caso de haber más de 60°, activará un estado de alarma, encendiendo y
-apagando el led rojo, moviendo el servo motor y mostrando una alerta en el LCD.
+uno verde. En caso de haber más de 60°, activará un estado de alarma, encendiendo el led rojo, 
+moviendo el servo motor y mostrando una alerta en el LCD.
 ~~~
 void EstablecerEstadoAlarma(float temperatura, int led, int led_alarma)
 {
